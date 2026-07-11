@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "API Key not configured" }, { status: 500 });
     }
 
-    // gemini-1.5-flash is extremely fast and free tier friendly
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Menggunakan gemini-2.5-flash yang tersedia pada API Key terbaru Anda
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Anda adalah asisten khusus untuk aplikasi kalkulator pendakian gunung di Indonesia. 
 Tugas Anda adalah memperkirakan harga rata-rata/wajar di minimarket atau pasar Indonesia (tahun berjalan) untuk barang berikut: "${itemName}".
@@ -34,7 +34,7 @@ ATURAN SANGAT KETAT:
 
     return NextResponse.json({ price: estimatedPrice });
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    return NextResponse.json({ error: "Failed to estimate price" }, { status: 500 });
+    console.error("Gemini API Error:", error.message || error);
+    return NextResponse.json({ error: error.message || "Failed to estimate price" }, { status: 500 });
   }
 }

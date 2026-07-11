@@ -36,18 +36,23 @@ export default function Home() {
   
   const result = calculateNeeds(safeParticipants, actualDuration, mode);
 
-  const sumCategory = (items: BillItem[], isTransport = false) => {
+  const sumCategory = (items: BillItem[], isTransport = false, isMisc = false) => {
     return items.reduce((acc, curr) => {
       const val = Number(curr.price) || 0;
-      const multi = (isTransport && curr.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+      let multi = 1;
+      if (isTransport && curr.multiplyByVehicles && transportCount) {
+        multi = typeof transportCount === "number" ? transportCount : 1;
+      } else if (isMisc && curr.multiplyByParticipants && safeParticipants) {
+        multi = typeof safeParticipants === "number" ? safeParticipants : 1;
+      }
       return acc + (val * multi);
     }, 0);
   };
 
   const totalSharedCost = sumCategory(splitBill.logistics) 
-    + sumCategory(splitBill.transport, true) 
+    + sumCategory(splitBill.transport, true, false) 
     + sumCategory(splitBill.equipment) 
-    + sumCategory(splitBill.misc);
+    + sumCategory(splitBill.misc, false, true);
 
   const costPerPerson = safeParticipants > 0 ? totalSharedCost / safeParticipants : 0;
 
@@ -62,13 +67,18 @@ export default function Home() {
   const handleShareWA = () => {
     if (!result) return;
     
-    const formatBillList = (title: string, items: BillItem[], isTransport = false) => {
+    const formatBillList = (title: string, items: BillItem[], isTransport = false, isMisc = false) => {
       const validItems = items.filter(i => i.name && i.price);
       if (validItems.length === 0) return "";
       let txt = `*${title}:*\n`;
       validItems.forEach(i => {
         const val = Number(i.price) || 0;
-        const multi = (isTransport && i.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+        let multi = 1;
+        if (isTransport && i.multiplyByVehicles && transportCount) {
+          multi = typeof transportCount === "number" ? transportCount : 1;
+        } else if (isMisc && i.multiplyByParticipants && safeParticipants) {
+          multi = typeof safeParticipants === "number" ? safeParticipants : 1;
+        }
         const displayVal = multi > 1 ? `${formatRupiah(val)} x ${multi} = ${formatRupiah(val * multi)}` : formatRupiah(val);
         txt += `- ${i.name}: ${displayVal}\n`;
       });
@@ -78,7 +88,7 @@ export default function Home() {
     const billDetails = formatBillList("Logistik & Makanan", splitBill.logistics)
       + formatBillList("Transportasi", splitBill.transport, true)
       + formatBillList("Sewa Alat & Tenda", splitBill.equipment)
-      + formatBillList("Lain-lain", splitBill.misc);
+      + formatBillList("Lain-lain", splitBill.misc, false, true);
 
     const validTransportCount = typeof transportCount === "number" ? transportCount : 1;
     const transportTotal = sumCategory(splitBill.transport, true);
@@ -197,11 +207,17 @@ export default function Home() {
                   { title: "4. Biaya Lain (Simaksi, Parkir, dll)", category: "misc" as keyof SplitBillData }
                 ].map(({ title, category }) => {
                   const isTransport = category === "transport";
+                  const isMisc = category === "misc";
                   const items = splitBill[category].filter(i => i.name && i.price !== "");
                   if (items.length === 0) return null;
                   const total = items.reduce((acc, curr) => {
                     const val = Number(curr.price) || 0;
-                    const multi = (isTransport && curr.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+                    let multi = 1;
+                    if (isTransport && curr.multiplyByVehicles && transportCount) {
+                      multi = typeof transportCount === "number" ? transportCount : 1;
+                    } else if (isMisc && curr.multiplyByParticipants && safeParticipants) {
+                      multi = typeof safeParticipants === "number" ? safeParticipants : 1;
+                    }
                     return acc + (val * multi);
                   }, 0);
                   
@@ -218,7 +234,13 @@ export default function Home() {
                         <tbody>
                           {items.map(item => {
                             const val = Number(item.price) || 0;
-                            const multi = (isTransport && item.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+                            let multi = 1;
+                            if (isTransport && item.multiplyByVehicles && transportCount) {
+                              multi = typeof transportCount === "number" ? transportCount : 1;
+                            } else if (isMisc && item.multiplyByParticipants && safeParticipants) {
+                              multi = typeof safeParticipants === "number" ? safeParticipants : 1;
+                            }
+                            
                             const displayStr = multi > 1 
                                ? <span className="text-sm font-medium">{formatRupiah(val)} <span className="text-gray-400">x{multi}</span></span>
                                : formatRupiah(val);

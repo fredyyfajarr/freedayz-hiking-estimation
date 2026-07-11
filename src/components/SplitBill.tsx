@@ -6,6 +6,7 @@ export interface BillItem {
   name: string;
   price: number | "";
   multiplyByVehicles?: boolean;
+  multiplyByParticipants?: boolean;
 }
 
 export interface SplitBillData {
@@ -32,13 +33,15 @@ const BillSection = ({
   splitBill,
   setSplitBill,
   transportCount,
+  participants,
   formatRupiah
 }: { 
   title: string, 
   category: keyof SplitBillData,
   splitBill: SplitBillData,
   setSplitBill: React.Dispatch<React.SetStateAction<SplitBillData>>,
-  transportCount: number | "",
+  transportCount?: number | "",
+  participants?: number | "",
   formatRupiah: (n: number) => string
 }) => {
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
@@ -48,11 +51,11 @@ const BillSection = ({
   const addItem = () => {
     setSplitBill(prev => ({
       ...prev,
-      [category]: [...prev[category], { id: Date.now().toString() + Math.random(), name: '', price: '', multiplyByVehicles: false }]
+      [category]: [...prev[category], { id: Date.now().toString() + Math.random(), name: '', price: '', multiplyByVehicles: false, multiplyByParticipants: false }]
     }));
   };
 
-  const updateItem = (id: string, field: 'name' | 'price' | 'multiplyByVehicles', value: string | number | boolean) => {
+  const updateItem = (id: string, field: 'name' | 'price' | 'multiplyByVehicles' | 'multiplyByParticipants', value: string | number | boolean) => {
     setSplitBill(prev => ({
       ...prev,
       [category]: prev[category].map(item => item.id === id ? { ...item, [field]: value } : item)
@@ -93,9 +96,12 @@ const BillSection = ({
 
   const categoryTotal = items.reduce((acc, curr) => {
     const val = Number(curr.price) || 0;
-    const multi = (category === 'transport' && curr.multiplyByVehicles && transportCount) 
-      ? (typeof transportCount === "number" ? transportCount : 1) 
-      : 1;
+    let multi = 1;
+    if (category === 'transport' && curr.multiplyByVehicles && transportCount) {
+      multi = typeof transportCount === "number" ? transportCount : 1;
+    } else if (category === 'misc' && curr.multiplyByParticipants && participants) {
+      multi = typeof participants === "number" ? participants : 1;
+    }
     return acc + (val * multi);
   }, 0);
 
@@ -157,6 +163,18 @@ const BillSection = ({
                 Hitung per unit kendaraan (Otomatis dikali {transportCount || 1})
               </label>
             )}
+
+            {category === 'misc' && (
+              <label className="flex items-center gap-2 text-xs font-medium text-gray-600 pl-1 cursor-pointer w-fit hover:text-gray-900 transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={!!item.multiplyByParticipants} 
+                  onChange={e => updateItem(item.id, 'multiplyByParticipants', e.target.checked)}
+                  className="rounded border-gray-300 text-[var(--color-brand)] focus:ring-[var(--color-brand)]"
+                />
+                Hitung per orang (Otomatis dikali {participants || 1})
+              </label>
+            )}
           </div>
         ))}
       </div>
@@ -184,7 +202,7 @@ export default function SplitBill({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <div className="space-y-4">
-          <BillSection title="1. Belanja Logistik & Makanan" category="logistics" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
+          <BillSection title="1. Belanja Logistik & Makanan" category="logistics" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
           
           <div className="mb-6">
             <BillSection title="2. Transportasi (Tiket / Bensin / Tol)" category="transport" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
@@ -214,8 +232,8 @@ export default function SplitBill({
             })()}
           </div>
 
-          <BillSection title="3. Sewa Alat & Tenda" category="equipment" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
-          <BillSection title="4. Biaya Lain (Simaksi, Parkir, dll)" category="misc" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
+          <BillSection title="3. Sewa Alat & Tenda" category="equipment" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
+          <BillSection title="4. Biaya Lain (Simaksi, Parkir, dll)" category="misc" splitBill={splitBill} setSplitBill={setSplitBill} participants={participants} formatRupiah={formatRupiah} />
         </div>
 
         <div className="bg-[var(--color-brand)] text-white p-6 md:p-8 rounded-2xl flex flex-col justify-center items-center shadow-lg sticky top-6">

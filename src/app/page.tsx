@@ -36,8 +36,19 @@ export default function Home() {
   
   const result = calculateNeeds(safeParticipants, actualDuration, mode);
 
-  const sumCategory = (items: BillItem[]) => items.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
-  const totalSharedCost = sumCategory(splitBill.logistics) + sumCategory(splitBill.transport) + sumCategory(splitBill.equipment) + sumCategory(splitBill.misc);
+  const sumCategory = (items: BillItem[], isTransport = false) => {
+    return items.reduce((acc, curr) => {
+      const val = Number(curr.price) || 0;
+      const multi = (isTransport && curr.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+      return acc + (val * multi);
+    }, 0);
+  };
+
+  const totalSharedCost = sumCategory(splitBill.logistics) 
+    + sumCategory(splitBill.transport, true) 
+    + sumCategory(splitBill.equipment) 
+    + sumCategory(splitBill.misc);
+
   const costPerPerson = safeParticipants > 0 ? totalSharedCost / safeParticipants : 0;
 
   const formatRupiah = (angka: number) => {
@@ -51,19 +62,26 @@ export default function Home() {
   const handleShareWA = () => {
     if (!result) return;
     
-    const formatBillList = (title: string, items: BillItem[]) => {
-      const validItems = items.filter(i => i.name || i.price);
-      if (validItems.length === 0) return '';
-      return `_${title}_\n` + validItems.map(i => `  - ${i.name || 'Item'}: ${formatRupiah(Number(i.price) || 0)}`).join('\n') + '\n';
+    const formatBillList = (title: string, items: BillItem[], isTransport = false) => {
+      const validItems = items.filter(i => i.name && i.price);
+      if (validItems.length === 0) return "";
+      let txt = `*${title}:*\n`;
+      validItems.forEach(i => {
+        const val = Number(i.price) || 0;
+        const multi = (isTransport && i.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+        const displayVal = multi > 1 ? `${formatRupiah(val)} x ${multi} = ${formatRupiah(val * multi)}` : formatRupiah(val);
+        txt += `- ${i.name}: ${displayVal}\n`;
+      });
+      return txt + "\n";
     };
 
     const billDetails = formatBillList("Logistik & Makanan", splitBill.logistics)
-      + formatBillList("Transportasi", splitBill.transport)
-      + formatBillList("Alat & Tenda", splitBill.equipment)
+      + formatBillList("Transportasi", splitBill.transport, true)
+      + formatBillList("Sewa Alat & Tenda", splitBill.equipment)
       + formatBillList("Lain-lain", splitBill.misc);
 
     const validTransportCount = typeof transportCount === "number" ? transportCount : 1;
-    const transportTotal = sumCategory(splitBill.transport);
+    const transportTotal = sumCategory(splitBill.transport, true);
     const transportInfoWA = transportTotal > 0 
       ? `\n_💡 Info: Patungan bensin per ${transportType} = ${formatRupiah(transportTotal / validTransportCount)} (dibagi rata penumpang di dalamnya)_\n`
       : "";
@@ -178,9 +196,14 @@ export default function Home() {
                   { title: "3. Sewa Alat & Tenda", category: "equipment" as keyof SplitBillData },
                   { title: "4. Biaya Lain (Simaksi, Parkir, dll)", category: "misc" as keyof SplitBillData }
                 ].map(({ title, category }) => {
+                  const isTransport = category === "transport";
                   const items = splitBill[category].filter(i => i.name && i.price !== "");
                   if (items.length === 0) return null;
-                  const total = items.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
+                  const total = items.reduce((acc, curr) => {
+                    const val = Number(curr.price) || 0;
+                    const multi = (isTransport && curr.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+                    return acc + (val * multi);
+                  }, 0);
                   
                   return (
                     <div key={category} className="mb-4">
@@ -193,12 +216,23 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody>
-                          {items.map(item => (
-                            <tr key={item.id} className="border-b border-gray-200">
-                              <td className="py-2 text-gray-800">{item.name}</td>
-                              <td className="py-2 text-right text-gray-800">{formatRupiah(Number(item.price))}</td>
-                            </tr>
-                          ))}
+                          {items.map(item => {
+                            const val = Number(item.price) || 0;
+                            const multi = (isTransport && item.multiplyByVehicles && transportCount) ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+                            const displayStr = multi > 1 
+                               ? <span className="text-sm font-medium">{formatRupiah(val)} <span className="text-gray-400">x{multi}</span></span>
+                               : formatRupiah(val);
+                            
+                            return (
+                              <tr key={item.id} className="border-b border-gray-200">
+                                <td className="py-2 text-gray-800">{item.name}</td>
+                                <td className="py-2 text-right text-gray-800 flex flex-col items-end">
+                                  {displayStr}
+                                  {multi > 1 && <span className="text-[var(--color-brand)] font-bold text-sm">{formatRupiah(val * multi)}</span>}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                         <tfoot>
                           <tr>

@@ -5,6 +5,7 @@ export interface BillItem {
   id: string;
   name: string;
   price: number | "";
+  multiplyByVehicles?: boolean;
 }
 
 export interface SplitBillData {
@@ -30,12 +31,14 @@ const BillSection = ({
   category,
   splitBill,
   setSplitBill,
+  transportCount,
   formatRupiah
 }: { 
   title: string, 
   category: keyof SplitBillData,
   splitBill: SplitBillData,
   setSplitBill: React.Dispatch<React.SetStateAction<SplitBillData>>,
+  transportCount: number | "",
   formatRupiah: (n: number) => string
 }) => {
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
@@ -45,11 +48,11 @@ const BillSection = ({
   const addItem = () => {
     setSplitBill(prev => ({
       ...prev,
-      [category]: [...prev[category], { id: Date.now().toString() + Math.random(), name: '', price: '' }]
+      [category]: [...prev[category], { id: Date.now().toString() + Math.random(), name: '', price: '', multiplyByVehicles: false }]
     }));
   };
 
-  const updateItem = (id: string, field: 'name' | 'price', value: string | number) => {
+  const updateItem = (id: string, field: 'name' | 'price' | 'multiplyByVehicles', value: string | number | boolean) => {
     setSplitBill(prev => ({
       ...prev,
       [category]: prev[category].map(item => item.id === id ? { ...item, [field]: value } : item)
@@ -88,7 +91,13 @@ const BillSection = ({
     }
   };
 
-  const categoryTotal = items.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
+  const categoryTotal = items.reduce((acc, curr) => {
+    const val = Number(curr.price) || 0;
+    const multi = (category === 'transport' && curr.multiplyByVehicles && transportCount) 
+      ? (typeof transportCount === "number" ? transportCount : 1) 
+      : 1;
+    return acc + (val * multi);
+  }, 0);
 
   return (
     <div className="mb-6 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
@@ -98,42 +107,56 @@ const BillSection = ({
           <Plus size={14} /> Tambah Item
         </button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {items.map((item) => (
-          <div key={item.id} className="flex gap-2 items-center">
-            <div className="relative flex-1">
-              <input 
-                type="text" 
-                placeholder="Nama (misal: Sayur & Bumbu)" 
-                value={item.name} 
-                onChange={e => updateItem(item.id, 'name', e.target.value)} 
-                className="w-full px-3 py-2 pr-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand)] outline-none text-sm bg-white transition-all" 
-              />
+          <div key={item.id} className="flex flex-col gap-2 bg-white p-2 border border-gray-200 rounded-xl">
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  placeholder="Nama (misal: Bensin)" 
+                  value={item.name} 
+                  onChange={e => updateItem(item.id, 'name', e.target.value)} 
+                  className="w-full px-3 py-2 pr-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand)] outline-none text-sm bg-white transition-all" 
+                />
+                <button 
+                  onClick={() => estimatePrice(item.id, item.name)}
+                  disabled={!item.name || loadingItems[item.id]}
+                  title="Tebak Harga Pakai AI"
+                  className="absolute right-2 top-2 text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] disabled:text-gray-300 disabled:cursor-not-allowed transition-all"
+                >
+                  {loadingItems[item.id] ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                </button>
+              </div>
+              <div className="relative w-2/5">
+                <span className="absolute left-3 top-2.5 text-gray-500 text-sm">Rp</span>
+                <input 
+                  type="number" min="0" placeholder="0" 
+                  value={item.price} 
+                  onChange={e => updateItem(item.id, 'price', e.target.value === "" ? "" : Number(e.target.value))} 
+                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand)] outline-none text-sm bg-white transition-all" 
+                />
+              </div>
               <button 
-                onClick={() => estimatePrice(item.id, item.name)}
-                disabled={!item.name || loadingItems[item.id]}
-                title="Tebak Harga Pakai AI"
-                className="absolute right-2 top-2 text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] disabled:text-gray-300 disabled:cursor-not-allowed transition-all"
+                onClick={() => removeItem(item.id)} 
+                disabled={items.length === 1}
+                className={`p-1.5 rounded transition-all ${items.length === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:bg-red-50'}`}
               >
-                {loadingItems[item.id] ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                <Trash2 size={18} />
               </button>
             </div>
-            <div className="relative w-2/5">
-              <span className="absolute left-3 top-2.5 text-gray-500 text-sm">Rp</span>
-              <input 
-                type="number" min="0" placeholder="0" 
-                value={item.price} 
-                onChange={e => updateItem(item.id, 'price', e.target.value === "" ? "" : Number(e.target.value))} 
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-brand)] outline-none text-sm bg-white transition-all" 
-              />
-            </div>
-            <button 
-              onClick={() => removeItem(item.id)} 
-              disabled={items.length === 1}
-              className={`p-1.5 rounded transition-all ${items.length === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:bg-red-50'}`}
-            >
-              <Trash2 size={18} />
-            </button>
+            
+            {category === 'transport' && (
+              <label className="flex items-center gap-2 text-xs font-medium text-gray-600 pl-1 cursor-pointer w-fit hover:text-gray-900 transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={!!item.multiplyByVehicles} 
+                  onChange={e => updateItem(item.id, 'multiplyByVehicles', e.target.checked)}
+                  className="rounded border-gray-300 text-[var(--color-brand)] focus:ring-[var(--color-brand)]"
+                />
+                Hitung per unit kendaraan (Otomatis dikali {transportCount || 1})
+              </label>
+            )}
           </div>
         ))}
       </div>
@@ -161,12 +184,17 @@ export default function SplitBill({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <div className="space-y-4">
-          <BillSection title="1. Belanja Logistik & Makanan" category="logistics" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
+          <BillSection title="1. Belanja Logistik & Makanan" category="logistics" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
           
           <div className="mb-6">
-            <BillSection title="2. Transportasi (Tiket / Bensin / Tol)" category="transport" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
+            <BillSection title="2. Transportasi (Tiket / Bensin / Tol)" category="transport" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
             {(() => {
-              const transportTotal = splitBill.transport.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
+              const transportTotal = splitBill.transport.reduce((acc, curr) => {
+                const val = Number(curr.price) || 0;
+                const multi = curr.multiplyByVehicles && transportCount ? (typeof transportCount === "number" ? transportCount : 1) : 1;
+                return acc + (val * multi);
+              }, 0);
+              
               if (transportTotal > 0 && transportCount) {
                 const validCount = typeof transportCount === "number" ? transportCount : 1;
                 const costPerVehicle = transportTotal / validCount;
@@ -186,8 +214,8 @@ export default function SplitBill({
             })()}
           </div>
 
-          <BillSection title="3. Sewa Alat & Tenda" category="equipment" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
-          <BillSection title="4. Biaya Lain (Simaksi, Parkir, dll)" category="misc" splitBill={splitBill} setSplitBill={setSplitBill} formatRupiah={formatRupiah} />
+          <BillSection title="3. Sewa Alat & Tenda" category="equipment" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
+          <BillSection title="4. Biaya Lain (Simaksi, Parkir, dll)" category="misc" splitBill={splitBill} setSplitBill={setSplitBill} transportCount={transportCount} formatRupiah={formatRupiah} />
         </div>
 
         <div className="bg-[var(--color-brand)] text-white p-6 md:p-8 rounded-2xl flex flex-col justify-center items-center shadow-lg sticky top-6">

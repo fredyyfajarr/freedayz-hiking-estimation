@@ -30,7 +30,7 @@ export default function EstimasiResult({ result, transportType, transportCount }
             <Utensils className="text-[var(--color-brand)] print:text-gray-800" size={18} /> Logistik & Makanan
           </h3>
         </div>
-        <div className="bg-orange-50/50 px-4 py-2 border-b border-orange-100 flex items-start gap-2 text-xs md:text-sm text-orange-700 print:hidden">
+        <div className="bg-orange-50/50 px-4 py-2 border-b border-orange-100 flex items-start gap-2 text-xs md:text-sm text-orange-700 print:bg-gray-100 print:text-gray-700 print:border-gray-300 print:italic">
           <Info size={16} className="mt-0.5 shrink-0" />
           <p><strong>Catatan:</strong> Kuantitas logistik di bawah ini hanyalah <em>rekomendasi/estimasi minimum</em> agar tidak kekurangan di gunung. Anda bebas menyesuaikan jenis dan jumlahnya dengan selera tim.</p>
         </div>

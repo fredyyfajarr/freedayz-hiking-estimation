@@ -137,7 +137,7 @@ export default function Home() {
 
           {/* Timeline Cetak PDF */}
           {Object.keys(itinerary).length > 0 && (
-            <div className="hidden print:block mb-10">
+            <div className="hidden print:block mb-10 break-inside-avoid">
               <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-800 pb-2 mb-6 uppercase tracking-wider">Rencana Perjalanan (Itinerary)</h2>
               <div className="space-y-8">
                 {Array.from({ length: actualDuration }, (_, i) => i + 1).map(day => {
@@ -164,16 +164,79 @@ export default function Home() {
 
           {result && <EstimasiResult result={result} transportType={transportType} transportCount={transportCount} />}
 
-          <SplitBill 
-            splitBill={splitBill}
-            setSplitBill={setSplitBill}
-            totalSharedCost={totalSharedCost}
-            costPerPerson={costPerPerson}
-            participants={participants}
-            transportType={transportType}
-            transportCount={transportCount}
-            formatRupiah={formatRupiah}
-          />
+          {/* Rincian Biaya Cetak PDF (Print Only) */}
+          {(totalSharedCost > 0) && (
+            <div className="hidden print:block mt-10 break-inside-avoid">
+              <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-800 pb-2 mb-6 uppercase tracking-wider">
+                Rincian Anggaran Biaya (RAB)
+              </h2>
+              
+              <div className="space-y-6">
+                {[
+                  { title: "1. Belanja Logistik & Makanan", category: "logistics" as keyof SplitBillData },
+                  { title: "2. Transportasi (Tiket / Bensin / Tol)", category: "transport" as keyof SplitBillData },
+                  { title: "3. Sewa Alat & Tenda", category: "equipment" as keyof SplitBillData },
+                  { title: "4. Biaya Lain (Simaksi, Parkir, dll)", category: "misc" as keyof SplitBillData }
+                ].map(({ title, category }) => {
+                  const items = splitBill[category].filter(i => i.name && i.price !== "");
+                  if (items.length === 0) return null;
+                  const total = items.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0);
+                  
+                  return (
+                    <div key={category} className="mb-4">
+                      <h3 className="font-bold text-gray-800 text-lg mb-2">{title}</h3>
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-400">
+                            <th className="py-2 text-gray-600 font-semibold w-3/4">Nama Item</th>
+                            <th className="py-2 text-right text-gray-600 font-semibold">Estimasi Harga</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items.map(item => (
+                            <tr key={item.id} className="border-b border-gray-200">
+                              <td className="py-2 text-gray-800">{item.name}</td>
+                              <td className="py-2 text-right text-gray-800">{formatRupiah(Number(item.price))}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td className="py-2 font-bold text-gray-800 text-right pr-4">Subtotal</td>
+                            <td className="py-2 font-bold text-[var(--color-brand)] text-right">{formatRupiah(total)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="mt-8 bg-gray-50 border border-gray-200 p-6 rounded-xl flex justify-between items-center break-inside-avoid">
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold mb-1">TOTAL PENGELUARAN KELOMPOK</p>
+                  <p className="text-3xl font-black text-gray-900">{formatRupiah(totalSharedCost)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-600 text-sm font-semibold mb-1">PATUNGAN PER ORANG ({safeParticipants} Orang)</p>
+                  <p className="text-3xl font-black text-[var(--color-brand)]">{formatRupiah(costPerPerson)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="print:hidden mt-8">
+            <SplitBill 
+              splitBill={splitBill}
+              setSplitBill={setSplitBill}
+              totalSharedCost={totalSharedCost}
+              costPerPerson={costPerPerson}
+              participants={participants}
+              transportType={transportType}
+              transportCount={transportCount}
+              formatRupiah={formatRupiah}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 pt-4 pb-12 print:hidden">

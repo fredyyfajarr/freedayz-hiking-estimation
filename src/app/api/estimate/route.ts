@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "API Key not configured" }, { status: 500 });
     }
 
-    // Menggunakan gemini-2.5-flash yang tersedia pada API Key terbaru Anda
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // Menggunakan alias gemini-flash-latest yang dijamin kompatibel dengan semua akun/key
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `Anda adalah asisten khusus untuk aplikasi kalkulator pendakian gunung di Indonesia. 
 Tugas Anda adalah memperkirakan harga rata-rata/wajar di minimarket atau pasar Indonesia (tahun berjalan) untuk barang berikut: "${itemName}".

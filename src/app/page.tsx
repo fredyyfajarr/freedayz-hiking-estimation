@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import InputForm from "@/components/InputForm";
 import EstimasiResult from "@/components/EstimasiResult";
 import SplitBill, { SplitBillData, BillItem } from "@/components/SplitBill";
+import Itinerary, { ItineraryData } from "@/components/Itinerary";
 
 export default function Home() {
   const [mountainName, setMountainName] = useState<string>("");
@@ -16,7 +17,9 @@ export default function Home() {
   const [duration, setDuration] = useState<number | "">(2);
   
   const [transportType, setTransportType] = useState<string>("Motor Pribadi");
-  const [transportCount, setTransportCount] = useState<number | "">(2);
+  const [transportCount, setTransportCount] = useState<number | "">(1);
+
+  const [itinerary, setItinerary] = useState<ItineraryData>({});
 
   const [splitBill, setSplitBill] = useState<SplitBillData>({
     logistics: [{ id: 'log1', name: '', price: '' }],
@@ -69,7 +72,25 @@ export default function Home() {
       ? `*Rincian Split Bill / Patungan:*\n${billDetails}${transportInfoWA}\n*Total Biaya Kelompok: ${formatRupiah(totalSharedCost)}*\n*Patungan Per Orang: ${formatRupiah(costPerPerson)}*\n\n`
       : `*Estimasi Patungan (Ptpt):*\nBelum ada rincian biaya yang dimasukkan.\n\n`;
 
+    let itineraryText = "";
+    if (Object.keys(itinerary).length > 0) {
+      itineraryText = "*Rencana Perjalanan (Itinerary)*\n";
+      Array.from({ length: actualDuration }, (_, i) => i + 1).forEach(day => {
+        const items = itinerary[day];
+        if (items && items.length > 0) {
+          itineraryText += `\n*Hari ${day}:*\n`;
+          items.forEach(item => {
+            if (item.time || item.activity) {
+              itineraryText += `- ${item.time || '...'} : ${item.activity || '...'}\n`;
+            }
+          });
+        }
+      });
+      itineraryText += "\n";
+    }
+
     const text = `*Rencana Pendakian ${mountainName || "Gunung"} (${mode})*\nPeserta: ${safeParticipants} Orang\nDurasi: ${actualDuration} Hari\n\n`
+      + itineraryText
       + `*Tenda & Alat Kelompok:*\n${result.equipment.map(e => `- ${e.name} (${e.qty} ${e.unit})`).join('\n')}\n\n`
       + `*Logistik & Makanan:*\n${result.logistics.map(l => `- ${l.name} (${l.qty} ${l.unit}${l.perPerson ? ` | ${l.perPerson}` : ''})`).join('\n')}\n\n`
       + `*Barang Pribadi (Wajib):*\n${result.personal.map(p => `- ${p.name}`).join('\n')}\n\n`
@@ -88,7 +109,7 @@ export default function Home() {
           <Header />
         </div>
 
-        <div className="print:hidden">
+        <div className="print:hidden space-y-6">
           <InputForm 
             mountainName={mountainName} setMountainName={setMountainName}
             mode={mode} setMode={setMode} 
@@ -97,6 +118,7 @@ export default function Home() {
             transportType={transportType} setTransportType={setTransportType}
             transportCount={transportCount} setTransportCount={setTransportCount}
           />
+          <Itinerary duration={actualDuration} itinerary={itinerary} setItinerary={setItinerary} />
         </div>
 
         <div ref={printRef} className="space-y-6 bg-[var(--background)] print:bg-white print:space-y-6">
@@ -112,6 +134,33 @@ export default function Home() {
               <p>⏱️ Durasi: {actualDuration} Hari</p>
             </div>
           </div>
+
+          {/* Timeline Cetak PDF */}
+          {Object.keys(itinerary).length > 0 && (
+            <div className="hidden print:block mb-10">
+              <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-800 pb-2 mb-6 uppercase tracking-wider">Rencana Perjalanan (Itinerary)</h2>
+              <div className="space-y-8">
+                {Array.from({ length: actualDuration }, (_, i) => i + 1).map(day => {
+                  const items = itinerary[day];
+                  if (!items || items.length === 0) return null;
+                  return (
+                    <div key={day}>
+                      <h3 className="font-bold text-gray-700 text-lg mb-4 bg-gray-100 inline-block px-4 py-1 rounded-full">HARI {day}</h3>
+                      <div className="pl-6 border-l-2 border-[var(--color-brand)] space-y-5 ml-4">
+                        {items.map(item => (
+                          <div key={item.id} className="relative pl-6">
+                            <div className="absolute -left-[31px] top-1.5 w-4 h-4 bg-[var(--color-brand)] rounded-full ring-4 ring-white"></div>
+                            <div className="font-bold text-sm text-[var(--color-brand)]">{item.time || "Waktu -"}</div>
+                            <div className="text-gray-800 font-medium text-lg mt-0.5">{item.activity || "Kegiatan -"}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {result && <EstimasiResult result={result} transportType={transportType} transportCount={transportCount} />}
 

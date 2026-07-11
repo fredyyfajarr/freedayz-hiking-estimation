@@ -77,9 +77,12 @@ const BillSection = ({
       
       if (data.price !== undefined && data.price > 0) {
         updateItem(id, 'price', data.price);
+      } else if (data.error) {
+        alert("Gagal memanggil AI: " + data.error + "\n\nPastikan API Key sudah benar dan valid.");
       }
     } catch (err) {
       console.error(err);
+      alert("Terjadi kesalahan jaringan atau server.");
     } finally {
       setLoadingItems(prev => ({ ...prev, [id]: false }));
     }

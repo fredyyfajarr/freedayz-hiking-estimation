@@ -1,5 +1,5 @@
 import { CalculationResult } from "@/utils/calculator";
-import { Tent, Utensils, Backpack, Car } from "lucide-react";
+import { Tent, Utensils, Backpack, Car, Info } from "lucide-react";
 
 interface EstimasiResultProps {
   result: CalculationResult;

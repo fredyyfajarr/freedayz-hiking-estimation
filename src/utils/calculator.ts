@@ -73,5 +73,14 @@ export function calculateNeeds(participants: number, durationDays: number, mode:
     };
   });
 
-  return { equipment, logistics: finalLogistics, personal };
+  const firstAid = [
+    { name: "Kotak P3K Dasar", desc: "Betadine, Plester, Perban, Kasa, Gunting" },
+    { name: "Obat Pereda Nyeri & Demam", desc: "Paracetamol / Ibuprofen" },
+    { name: "Obat Pencernaan", desc: "Promag, Diapet, Norit" },
+    { name: "Obat Anti Alergi", desc: "CTM / Incidal (Khususnya jika ada yang alergi dingin)" },
+    { name: "Oksigen Kaleng (Oxycan)", desc: "1-2 Kaleng untuk darurat sesak napas / asma" },
+    { name: "Selimut Darurat (Thermal Blanket)", desc: "1-2 Pcs untuk penanganan pertama hipotermia" }
+  ];
+
+  return { equipment, logistics: finalLogistics, personal, firstAid };
 }

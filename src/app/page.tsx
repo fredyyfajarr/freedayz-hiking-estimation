@@ -165,14 +165,14 @@ export default function Home() {
 
           {/* Timeline Cetak PDF */}
           {Object.keys(itinerary).length > 0 && (
-            <div className="hidden print:block mb-10 break-inside-avoid">
+            <div className="hidden print:block mb-10">
               <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-800 pb-2 mb-6 uppercase tracking-wider">Rencana Perjalanan (Itinerary)</h2>
               <div className="space-y-8">
                 {Array.from({ length: actualDuration }, (_, i) => i + 1).map(day => {
                   const items = itinerary[day];
                   if (!items || items.length === 0) return null;
                   return (
-                    <div key={day}>
+                    <div key={day} className="break-inside-avoid">
                       <h3 className="font-bold text-gray-700 text-lg mb-4 bg-gray-100 inline-block px-4 py-1 rounded-full">HARI {day}</h3>
                       <div className="pl-6 border-l-2 border-[var(--color-brand)] space-y-5 ml-4">
                         {items.map(item => (
@@ -194,7 +194,7 @@ export default function Home() {
 
           {/* Rincian Biaya Cetak PDF (Print Only) */}
           {(totalSharedCost > 0) && (
-            <div className="hidden print:block mt-10 break-inside-avoid">
+            <div className="hidden print:block mt-10">
               <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-800 pb-2 mb-6 uppercase tracking-wider">
                 Rincian Anggaran Biaya (RAB)
               </h2>
@@ -222,7 +222,7 @@ export default function Home() {
                   }, 0);
                   
                   return (
-                    <div key={category} className="mb-4">
+                    <div key={category} className="mb-4 break-inside-avoid">
                       <h3 className="font-bold text-gray-800 text-lg mb-2">{title}</h3>
                       <table className="w-full text-left border-collapse">
                         <thead>

@@ -59,8 +59,14 @@ export default function Home() {
       + formatBillList("Alat & Tenda", splitBill.equipment)
       + formatBillList("Lain-lain", splitBill.misc);
 
+    const validTransportCount = typeof transportCount === "number" ? transportCount : 1;
+    const transportTotal = sumCategory(splitBill.transport);
+    const transportInfoWA = transportTotal > 0 
+      ? `\n_💡 Info: Patungan bensin per ${transportType} = ${formatRupiah(transportTotal / validTransportCount)} (dibagi rata penumpang di dalamnya)_\n`
+      : "";
+
     const splitBillSection = billDetails 
-      ? `*Rincian Split Bill / Patungan:*\n${billDetails}\n*Total Biaya Kelompok: ${formatRupiah(totalSharedCost)}*\n*Patungan Per Orang: ${formatRupiah(costPerPerson)}*\n\n`
+      ? `*Rincian Split Bill / Patungan:*\n${billDetails}${transportInfoWA}\n*Total Biaya Kelompok: ${formatRupiah(totalSharedCost)}*\n*Patungan Per Orang: ${formatRupiah(costPerPerson)}*\n\n`
       : `*Estimasi Patungan (Ptpt):*\nBelum ada rincian biaya yang dimasukkan.\n\n`;
 
     const text = `*Rencana Pendakian ${mountainName || "Gunung"} (${mode})*\nPeserta: ${safeParticipants} Orang\nDurasi: ${actualDuration} Hari\n\n`
@@ -115,6 +121,8 @@ export default function Home() {
             totalSharedCost={totalSharedCost}
             costPerPerson={costPerPerson}
             participants={participants}
+            transportType={transportType}
+            transportCount={transportCount}
             formatRupiah={formatRupiah}
           />
         </div>

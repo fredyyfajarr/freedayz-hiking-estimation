@@ -34,7 +34,7 @@ export default function EstimasiResult({ result, transportType, transportCount }
           <Info size={16} className="mt-0.5 shrink-0" />
           <p><strong>Catatan:</strong> Kuantitas logistik di bawah ini hanyalah <em>rekomendasi/estimasi minimum</em> agar tidak kekurangan di gunung. Anda bebas menyesuaikan jenis dan jumlahnya dengan selera tim.</p>
         </div>
-        <div className="p-4 bg-white space-y-3">
+        <ul className="p-4 bg-white space-y-3">
           {result.logistics.map((item, i) => (
             <li key={i} className="flex justify-between items-start text-sm border-b border-gray-50 pb-2 last:border-0 last:pb-0">
               <span className="font-medium mt-1">{item.name}</span>

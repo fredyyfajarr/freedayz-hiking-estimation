@@ -9,6 +9,7 @@ import InputForm from "@/components/InputForm";
 import EstimasiResult from "@/components/EstimasiResult";
 import SplitBill, { SplitBillData, BillItem } from "@/components/SplitBill";
 import Itinerary, { ItineraryData } from "@/components/Itinerary";
+import { MOUNTAINS, Mountain } from "@/data/mountains";
 
 export default function Home() {
   const [mountainName, setMountainName] = useState<string>("");
@@ -35,6 +36,29 @@ export default function Home() {
   const actualDuration = mode === "Tektok" ? 1 : safeDuration;
   
   const result = calculateNeeds(safeParticipants, actualDuration, mode);
+
+  const handleMountainSelect = (m: Mountain) => {
+    setDuration(m.standardDuration);
+    
+    setSplitBill(prev => {
+      const hasSimaksi = prev.misc.some(item => item.name.toLowerCase().includes("simaksi") || item.name.toLowerCase().includes("tiket"));
+      if (!hasSimaksi && m.simaksi > 0) {
+        return {
+          ...prev,
+          misc: [
+            ...prev.misc.filter(i => i.name !== "" || i.price !== ""),
+            { 
+              id: Date.now().toString(), 
+              name: `Simaksi ${m.name}`, 
+              price: m.simaksi.toString(), 
+              multiplyByParticipants: true 
+            }
+          ]
+        };
+      }
+      return prev;
+    });
+  };
 
   const sumCategory = (items: BillItem[], isTransport = false, isMisc = false) => {
     return items.reduce((acc, curr) => {
@@ -145,6 +169,7 @@ export default function Home() {
             duration={duration} setDuration={setDuration} 
             transportType={transportType} setTransportType={setTransportType}
             transportCount={transportCount} setTransportCount={setTransportCount}
+            onMountainSelect={handleMountainSelect}
           />
           <Itinerary duration={actualDuration} itinerary={itinerary} setItinerary={setItinerary} />
         </div>

@@ -1,5 +1,5 @@
 import { CalculationResult } from "@/utils/calculator";
-import { Tent, Utensils, Backpack, Car, Info } from "lucide-react";
+import { Tent, Utensils, Backpack, Car, Info, HeartPulse } from "lucide-react";
 
 interface EstimasiResultProps {
   result: CalculationResult;
@@ -53,9 +53,32 @@ export default function EstimasiResult({ result, transportType, transportCount }
         </h3>
         <ul className="space-y-3">
           {result.personal.map((item, i) => (
-            <li key={i} className="flex flex-col text-sm border-b border-gray-100 pb-2 last:border-0">
-              <span className="font-semibold text-gray-800">{item.name}</span>
-              <span className="text-gray-500 text-xs">{item.desc}</span>
+            <li key={i} className="flex items-start gap-3 text-sm border-b border-gray-100 pb-2 last:border-0">
+              <div className="hidden print:block w-4 h-4 border border-gray-400 rounded-sm mt-0.5 shrink-0"></div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-gray-800">{item.name}</span>
+                <span className="text-gray-500 text-xs">{item.desc}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      
+      {/* 4. P3K & Keselamatan */}
+      <div className="bg-white rounded-xl shadow-sm border border-[var(--color-surface-hover)] overflow-hidden print:border-gray-300 print:shadow-none break-inside-avoid">
+        <div className="bg-red-50/80 p-4 border-b border-red-100 print:bg-gray-100">
+          <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <HeartPulse className="text-red-500 print:text-gray-800" size={18} /> P3K & Medis Kelompok
+          </h3>
+        </div>
+        <ul className="p-4 bg-white space-y-3">
+          {result.firstAid.map((item, i) => (
+            <li key={i} className="flex items-start gap-3 text-sm border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+              <div className="hidden print:block w-4 h-4 border border-gray-400 rounded-sm mt-0.5 shrink-0"></div>
+              <div className="flex flex-col">
+                <span className="font-medium mt-1">{item.name}</span>
+                <span className="text-gray-500 text-xs">{item.desc}</span>
+              </div>
             </li>
           ))}
         </ul>

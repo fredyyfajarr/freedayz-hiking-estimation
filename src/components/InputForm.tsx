@@ -1,5 +1,6 @@
 import { Mode } from "@/utils/calculator";
 import { Tent, Sun, Users, Clock, Car, MapPin } from "lucide-react";
+import { MOUNTAINS, Mountain } from "@/data/mountains";
 
 interface InputFormProps {
   mountainName: string;
@@ -14,12 +15,14 @@ interface InputFormProps {
   setTransportType: (v: string) => void;
   transportCount: number | "";
   setTransportCount: (v: number | "") => void;
+  onMountainSelect?: (mountain: Mountain) => void;
 }
 
 export default function InputForm({ 
   mountainName, setMountainName,
   mode, setMode, participants, setParticipants, duration, setDuration,
-  transportType, setTransportType, transportCount, setTransportCount
+  transportType, setTransportType, transportCount, setTransportCount,
+  onMountainSelect
 }: InputFormProps) {
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-[var(--color-surface-hover)] p-6 md:p-8 space-y-6">
@@ -28,11 +31,18 @@ export default function InputForm({
           <MapPin size={18} /> Tujuan Gunung
         </label>
         <input 
-          type="text" placeholder="Misal: Gunung Rinjani, Semeru, Gede..." 
+          type="text" list="mountains" placeholder="Misal: Gunung Rinjani, Semeru, Gede..." 
           value={mountainName} 
-          onChange={(e) => setMountainName(e.target.value)}
+          onChange={(e) => {
+            setMountainName(e.target.value);
+            const m = MOUNTAINS.find(m => m.name === e.target.value);
+            if (m && onMountainSelect) onMountainSelect(m);
+          }}
           className="w-full bg-white border border-gray-300 rounded-xl px-4 h-[46px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition-all font-medium"
         />
+        <datalist id="mountains">
+          {MOUNTAINS.map(m => <option key={m.id} value={m.name} />)}
+        </datalist>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

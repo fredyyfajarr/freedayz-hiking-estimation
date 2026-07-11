@@ -4,6 +4,7 @@ export interface CalculationResult {
   equipment: { name: string; qty: number; unit: string }[];
   logistics: { name: string; qty: number | string; unit: string; perPerson?: string }[];
   personal: { name: string; desc: string }[];
+  firstAid: { name: string; desc: string }[];
 }
 
 export function calculateNeeds(participants: number, durationDays: number, mode: Mode): CalculationResult {

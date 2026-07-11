@@ -24,11 +24,17 @@ export default function EstimasiResult({ result, transportType, transportCount }
         </ul>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--color-surface-hover)]">
-        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--color-brand)] border-b pb-2">
-          <Utensils className="text-[var(--color-brand)]" /> Logistik & Makanan
-        </h3>
-        <ul className="space-y-3">
+      <div className="bg-white rounded-xl shadow-sm border border-[var(--color-surface-hover)] overflow-hidden print:border-gray-300 print:shadow-none break-inside-avoid">
+        <div className="bg-gray-50/80 p-4 border-b border-gray-100 print:bg-gray-100">
+          <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <Utensils className="text-[var(--color-brand)] print:text-gray-800" size={18} /> Logistik & Makanan
+          </h3>
+        </div>
+        <div className="bg-orange-50/50 px-4 py-2 border-b border-orange-100 flex items-start gap-2 text-xs md:text-sm text-orange-700 print:hidden">
+          <Info size={16} className="mt-0.5 shrink-0" />
+          <p><strong>Catatan:</strong> Kuantitas logistik di bawah ini hanyalah <em>rekomendasi/estimasi minimum</em> agar tidak kekurangan di gunung. Anda bebas menyesuaikan jenis dan jumlahnya dengan selera tim.</p>
+        </div>
+        <div className="p-4 bg-white space-y-3">
           {result.logistics.map((item, i) => (
             <li key={i} className="flex justify-between items-start text-sm border-b border-gray-50 pb-2 last:border-0 last:pb-0">
               <span className="font-medium mt-1">{item.name}</span>
